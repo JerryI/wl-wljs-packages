@@ -31,7 +31,7 @@ WLJS`PM`Packages /: Set[ WLJS`PM`Packages[name_String, fields__], value_ ] := Wi
 WLJS`PM`Includes[param_] := WLJS`PM`Includes[param] = 
 Table[ 
     Table[ 
-      FileNameJoin[{$ProjectDir, "wljs_packages", WLJS`PM`Packages[i, "name"], StringSplit[j, "/"]} // Flatten]
+      FileNameJoin[{WLJS`PM`Packages[i, "name"], StringSplit[j, "/"]} // Flatten]
     , {j, {WLJS`PM`Packages[i, "wljs-meta", param]} // Flatten} ]
 , {i, Select[WLJS`PM`Packages // Keys, (WLJS`PM`Packages[#, "enabled"] && KeyExistsQ[WLJS`PM`Packages[#, "wljs-meta"], param])&]}] // Flatten;
 
