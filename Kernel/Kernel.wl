@@ -1,4 +1,4 @@
-BeginPackage["JerryI`WLJSPM`", {"KirillBelov`HTTPHandler`Extensions`"}];
+BeginPackage["JerryI`WLJSPM`"];
 
 WLJS`PM`Repositories::usage = "WLJS`PM`Repositories[{Github -> \"URL to the repo\", ...}] specify the wolfram packages to be synced via remote url"
 WLJS`PM`Packages;
