@@ -57,7 +57,7 @@ WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, 
 
     Echo["WLJS::PM >> project directory >> "<>projectDir];
 
-    If[KeyExistsQ[FileNameJoin[{projectDir, ".wljs_timestamp"}] ] && !OptionValue["ForceUpdates"],
+    If[FileExistsQ[FileNameJoin[{projectDir, ".wljs_timestamp"}] ] && !OptionValue["ForceUpdates"],
       With[{time = Get[ FileNameJoin[{projectDir, ".wljs_timestamp"}] ]},
         If[Now - time < OptionValue["UpdateInterval"],
           skipUpdates = True;
