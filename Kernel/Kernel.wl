@@ -36,7 +36,7 @@ Table[
 , {i, Select[WLJS`PM`Packages // Keys, (WLJS`PM`Packages[#, "enabled"] && KeyExistsQ[WLJS`PM`Packages[#, "wljs-meta"], param])&]}] // Flatten;
 
 
-WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, repos, cache, updated, removed, new, current, updatable},
+WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, repos, cache, updated, removed, new, current, updatable, skipUpdates = False},
     (* making key-values pairs *)
     repos = (#-><|"key"->#|>)&/@list // Association;
 
@@ -56,10 +56,26 @@ WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, 
     ];
 
     Echo["WLJS::PM >> project directory >> "<>projectDir];
+
+    If[KeyExistsQ[FileNameJoin[{projectDir, ".wljs_timestamp"}] ] && !OptionValue["ForceUpdates"],
+      With[{time = Get[ FileNameJoin[{projectDir, ".wljs_timestamp"}] ]},
+        If[Now - time < OptionValue["UpdateInterval"],
+          skipUpdates = True;
+          Echo[StringJoin["WLJS::PM >> last updated >> ", time // ToString] ];
+        ]
+      ]
+    ];    
+
+    If[OptionValue["ForceUpdates"],
+      skipUpdates = False;
+    ];
+
+    If[!skipUpdates, If[FailureQ[ URLFetch["https://github.com"] ], skipUpdates = True] ];
+
     Echo["WLJS::PM >> fetching paclet infos..."];
 
-    If[FailureQ[ URLFetch["https://github.com"] ],
-      Echo["WLJS::PM >> ERROR! no internet connection to github.com!"];
+    If[skipUpdates,
+      Echo["WLJS::PM >> passive mode"];
       Echo["WLJS::PM >> checking cached"];
       cache = CacheLoad[projectDir];
       
@@ -128,12 +144,16 @@ WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, 
     repos = OverlayAnonymousReposMeta[projectDir, repos];
 
     (* update local cache file aka packages.json *)
-    CacheStore[projectDir, repos];    
+    CacheStore[projectDir, repos];   
+
+    Put[Now, FileNameJoin[{projectDir, ".wljs_timestamp"}] ]; 
 
     $ProjectDir = projectDir;
     $packages = repos;
     $packages = sortPackages[$packages];
 ]
+
+Options[WLJS`PM`Repositories] = {"Directory"->Directory[], "ForceUpdates" -> False, "UpdateInterval" -> Quantity[3, "Days"]}
 
 sortPackages[assoc_Association] := With[{},
     Map[
@@ -176,7 +196,6 @@ OverlayAnonymousReposMeta[dir_String, repos_Association] := With[{
     ]
 ]
 
-Options[WLJS`PM`Repositories] = {"Directory"->None, "Passive"->False}
 
 CacheStore[dir_String, repos_Association] := With[{
     users = Select[repos, Function[assoc, TrueQ[assoc["users"] ] ] ],
@@ -305,7 +324,7 @@ InstallPaclet[dir_String][a_Association, Rule[Github, Rule[url_String, branch_St
     ];
 
     (* download branch as zip using old API *)
-    Echo["WLJS::PM >> fetching a zip archive from the master branch..."];    
+    Echo["WLJS::PM >> fetching a zip archive from the branch..."];    
     URLDownload["https://github.com/"<>a["git-url"]<>"/zipball/"<>ToLowerCase[branch], FileNameJoin[{dir, "___temp.zip"}]];
     
     Echo["WLJS::PM >> extracting..."];
