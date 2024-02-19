@@ -61,7 +61,7 @@ WLJS`PM`Repositories[list_List, OptionsPattern[] ] := Module[{projectDir, info, 
       With[{time = Get[ FileNameJoin[{projectDir, ".wljs_timestamp"}] ]},
         If[Now - time < OptionValue["UpdateInterval"],
           skipUpdates = True;
-          Echo[StringJoin["WLJS::PM >> last updated >> ", time // ToString] ];
+          Echo[StringJoin["WLJS::PM >> last updated >> ", time // TextString] ];
         ]
       ]
     ];    
